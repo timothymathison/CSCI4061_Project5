@@ -18,7 +18,7 @@
 //#include <signal.h>
 //#include <libgen.h>
 
-int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])
+int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[]);
 
 int main(int argc, char *argv[])
 {
@@ -37,18 +37,143 @@ int main(int argc, char *argv[])
 
 	strcpy(config_name, argv[1]);
 
-	config = fopen(config_name);
+	config = fopen(config_name, "r");
 	if(config == NULL)
 	{
 		perror("Server config can't be found");
+		exit(1);
 	}
 
+	struct stat* stat_info = malloc(1024);
+	stat(config_name, stat_info);
+	char * config_info = (char *)malloc(stat_info->st_size);
+	fread(config_info, 1, stat_info->st_size, config);
 	char * line = (char *)malloc(1031);
-	while(fgets(line, 1032, config) != NULL)
+
+	regex_t re_port;
+	regex_t re_dir;
+	char r1[] = "^Port = *";
+	char r2[] = "^Dir = *";
+	regcomp(&re_port, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_dir, r2, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+
+	//Read config file
+	int port_found = 0;
+	int dir_found = 0;
+	int line_index = 0;
+	int i;
+	for(i = 0; i < stat_info->st_size; i++)
 	{
+		if(config_info[i] != 13 && config_info[i] != 10 && config_info[i] != 0)
+		{
+			line[line_index++] = config_info[i];
+			if(!(i == stat_info->st_size - 1))
+			{
+				continue;
+			}
+		}
+
+		if(!port_found && regexec(&re_port, line, 0, NULL,0) == 0)
+		{
+			strcpy(port, &line[6]);
+			port_found = 1;
+		}
+		else if(!dir_found && regexec(&re_dir, line, 0, NULL,0) == 0)
+		{
+			strcpy(directory_path, &line[5]);
+			dir_found = 1;
+		}
+		if(port_found && dir_found)
+		{
+			break;
+		}
+		line_index = 0;
 		
 	}
+	if(!port_found)
+	{
+		printf("No port found in config file %s\n", config_name);
+		exit(1);
+	}
+	if(!dir_found)
+	{
+		printf("No directory found in config file %s\n", config_name);
+		exit(1);
+	}
 
+	while(port[0] == ' ')
+	{
+		port = &port[1];
+	}
+	printf("Port: %s\n", port);
+
+	//Process directory path
+	char * temp = (char *)malloc(1024);
+	while(directory_path[0] == ' ')
+	{
+		directory_path = &directory_path[1];
+	}
+	if(directory_path[0] == '.' && directory_path[1] == '/')
+	{
+		getcwd(temp, 1024);
+		strcat(temp, &directory_path[1]);
+		strcpy(directory_path, temp);
+	}
+	else if(directory_path[0] != '/')
+	{
+		strcpy(temp, "/");
+		strcat(temp, directory_path);
+		strcpy(directory_path, temp);
+	}
+	printf("Directory: %s\n", directory_path);
+
+	//check if directory exists
+	DIR* directory;
+	directory = opendir(directory_path);
+	if(directory ==  NULL)
+	{
+		perror("Directory could not be found");
+		exit(1);
+	}
+	closedir(directory);
+
+	//create list of image files in directory path
+	int buffer_length = 256;
+	char * image_paths[buffer_length];
+	int count = 0;
+	count = search_directory(image_paths, 0, buffer_length, directory_path);
+	while(count == -1)
+	{
+		buffer_length = 2 * buffer_length;
+		char * image_paths[buffer_length]; //this doesn't work need to find another way to resize
+		count = search_directory(image_paths, 0, buffer_length, directory_path);
+	}
+
+	for(i = 0; i < count; i++)
+	{
+		printf("File found: %s\n", image_paths[i]);
+	}
+
+	//create catalog csv file
+	char * catalog_path = (char *)malloc(1036);
+	strcpy(catalog_path, directory_path);
+	strcat(catalog_path, "/catalog.csv");
+	FILE * catalog;
+	catalog = fopen(catalog_path, "w");
+	if(catalog == NULL)
+	{
+		perror("Failed to create catalog file");
+		exit(1);
+	}
+	fputs("Filename, Size, Checksum\n", catalog);
+
+	for (i = 0; i < count; i++)
+	{
+		stat(image_paths[i], stat_info);
+		fprintf(catalog, "%s, %ld\n", image_paths[i], stat_info->st_size);
+		//TODO: create checksum
+	}
+	fclose(catalog);
 }
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])
@@ -58,6 +183,10 @@ int search_directory( char * buffer[], int offset, int buffer_length, char dir_n
 	char * name;
 	char * path;
 	int loc = offset;
+	int sub_count;
+	regex_t re_image;
+	char re[] = "^.*png$|^.*jpg$|^.*gif$|^.*tiff$";
+	regcomp(&re_image, re, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
 	directory = opendir(dir_name);
 	while((file = readdir(directory)) != NULL)
@@ -72,7 +201,15 @@ int search_directory( char * buffer[], int offset, int buffer_length, char dir_n
 			strcpy(path, dir_name);
             strcat(path, "/");
             strcat(path, file->d_name);
-            loc += search_directory(buffer, loc, path);
+            sub_count = search_directory(buffer, loc, buffer_length, path);
+            if(sub_count == -1)
+            {
+            	return -1;
+            }
+            else
+            {
+            	loc += sub_count;
+            }
 		}
 		else
 		{
@@ -80,14 +217,16 @@ int search_directory( char * buffer[], int offset, int buffer_length, char dir_n
 			{
 				return -1;
 			}
-			path = (char *)malloc(1280);
-			strcpy(path, dir_name);
-			strcat(path, "/");
-			strcat(path, file->d_name);
+			if(regexec(&re_image, file->d_name, 0, NULL,0) == 0)
+			{
+				path = (char *)malloc(1280);
+				strcpy(path, dir_name);
+				strcat(path, "/");
+				strcat(path, file->d_name);
+				buffer[loc] = path;
+				loc++;
+			}
 			
-			buffer[loc] = path;
-
-			loc++;
 		}
 	}
 	closedir(directory);
