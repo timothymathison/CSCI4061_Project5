@@ -12,6 +12,9 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
 //#include <pthread.h>
 //#include <time.h>
 //#include <sys/time.h>
@@ -151,7 +154,7 @@ int main(int argc, char *argv[])
 
 	for(i = 0; i < count; i++)
 	{
-		printf("File found: %s\n", image_paths[i]);
+		printf("Image found: %s\n", image_paths[i]);
 	}
 
 	//create catalog csv file
@@ -174,6 +177,33 @@ int main(int argc, char *argv[])
 		//TODO: create checksum
 	}
 	fclose(catalog);
+
+	//Create socket
+	int soc = socket(AF_INET, SOCK_STREAM, 0);
+	if(soc < 0)
+	{
+		perror("Failed to open socket");
+		exit(1);
+	}
+	struct sockaddr_in server_addr;
+	struct sockaddr_in client_addr;
+	bzero((char *) &server_addr, sizeof(server_addr));
+	int port_num = atoi(port);
+	printf("%d\n", port_num);
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(port_num);
+	int result = bind(soc, (struct sockaddr *)&server_addr, sizeof(server_addr));
+	if(result < 0)
+	{
+		perror("Failed to bind socket and address");
+		exit(1);
+	}
+	listen(soc, 5);
+
+	//TODO: set socket address
+	//TODO: wait for connection from client
+	//inet_aton()  convert ip string to binary 
 }
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])
