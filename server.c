@@ -1,4 +1,4 @@
-// CSci 4061 Spring 2017 Assignment 4
+// CSci 4061 Spring 2017 Assignment 5
 // Name1=Timothy Mathison
 // Name2=Clay O'Neil
 // StudentID1=ID mathi464
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		line_index = 0;
-		
+		bzero((char *)line, 1031);
 	}
 	if(!port_found)
 	{
