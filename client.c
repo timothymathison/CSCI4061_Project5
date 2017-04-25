@@ -117,7 +117,6 @@ int main(int argc, char *argv[])
 	printf("Port: %s\n", port);
 	printf("Chunk_Size: %s\n",chunk_size);
 	
-
 	//Create socket
 	int soc = socket(AF_INET, SOCK_STREAM, 0);
 	if(soc < 0)
@@ -125,4 +124,19 @@ int main(int argc, char *argv[])
 		perror("Failed to open socket");
 		exit(1);
 	}
+
+	struct sockaddr_in server_addr;
+	struct hostent * server;
+	int port_num = atoi(port);
+	if(port_num == 0)
+	{
+		printf("Failed to parse port number");
+		exit(1);
+	}
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(port_num);
+	int parse_ip = inet_pton(AF_INET, server_ip, &server_addr.sin_addr.s_addr);
+	//printf("IP: %d\n", server_addr.sin_addr.s_addr);
+
+
 }

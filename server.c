@@ -189,7 +189,12 @@ int main(int argc, char *argv[])
 	struct sockaddr_in client_addr;
 	bzero((char *) &server_addr, sizeof(server_addr));
 	int port_num = atoi(port);
-	printf("%d\n", port_num);
+	if(port_num == 0)
+	{
+		printf("Failed to parse port number");
+		exit(1);
+	}
+	//printf("%d\n", port_num);
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
 	server_addr.sin_port = htons(port_num);
@@ -201,9 +206,7 @@ int main(int argc, char *argv[])
 	}
 	listen(soc, 5);
 
-	//TODO: set socket address
 	//TODO: wait for connection from client
-	//inet_aton()  convert ip string to binary 
 }
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])

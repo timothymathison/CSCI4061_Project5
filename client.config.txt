@@ -1,1 +1,1 @@
-Server = <IP_address>Port = <port>  Chunk_Size = <chunk size>ImageType = <type> (only for passive mode)
+Server = 127.10.10.10Port = 5000  Chunk_Size = <chunk size>ImageType = <type> (only for passive mode)
