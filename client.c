@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
 	//char * directory_path = (char *)malloc(1024);
 	char * config_name = (char *)malloc(256);
 	FILE * config;
-	char * server_ip = (char *)malloc(16);
+	char * server_ip = (char *)malloc(32);
 	char * port = (char *)malloc(8);
-	char * chunk_size = (char *)malloc(4);
+	char * chunk_size = (char *)malloc(8);
 
 	//check number of arguments
 	if(argc != 2)
@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
 		perror("Client config can't be found");
 		exit(1);
 	}
+
+	printf("PID: %ld\n", (long int)getpid());
 
 	struct stat* stat_info = malloc(1024);
 	stat(config_name, stat_info);
@@ -113,6 +115,11 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	//remove leading spaces from ip address
+	while(server_ip[0] == ' ')
+	{
+		server_ip = &server_ip[1];
+	}
 	printf("Server: %s\n", server_ip);
 	printf("Port: %s\n", port);
 	printf("Chunk_Size: %s\n",chunk_size);
@@ -135,8 +142,45 @@ int main(int argc, char *argv[])
 	}
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port_num);
-	int parse_ip = inet_pton(AF_INET, server_ip, &server_addr.sin_addr.s_addr);
-	//printf("IP: %d\n", server_addr.sin_addr.s_addr);
+	int parse_ip = inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
+	if(parse_ip <= 0)
+	{
+		printf("Failed to parse IP address: %s\n", server_ip);("Failed to parse IP address");
+		int n;
+		for(n = 0; n < 12; n++)
+		{
+			printf("%d\n", server_ip[n]);
+		}
+		exit(1);
+	}
 
+	printf("Conecting with server IP: %d\n", server_addr.sin_addr.s_addr);
+	if(connect(soc, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+	{
+		perror("Failed to connect to the server");
+		exit(1);
+	}
+	printf("Conection established with server \n");
 
+	char buffer[8];
+	bzero(buffer,8);
+	strcpy(buffer, "Hi");
+	int sent = write(soc, buffer, strlen(buffer));
+	if(sent < 0)
+	{
+		perror("Failed to send message");
+		exit(1);
+	}
+
+	int recieve = read(soc, buffer, 7);
+	if(recieve < 0)
+	{
+		perror("Failed to recieve message");
+		exit(1);
+	}
+	printf("Message Recieved: %s\n", buffer);
+
+	//TODO: start requesting and processing data from the server
+
+	close(soc);
 }

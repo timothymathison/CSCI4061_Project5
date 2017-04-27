@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	printf("PID: %ld\n", (long int)getpid());
+
 	struct stat* stat_info = malloc(1024);
 	stat(config_name, stat_info);
 	char * config_info = (char *)malloc(stat_info->st_size);
@@ -196,7 +198,7 @@ int main(int argc, char *argv[])
 	}
 	//printf("%d\n", port_num);
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	server_addr.sin_port = htons(port_num);
 	int result = bind(soc, (struct sockaddr *)&server_addr, sizeof(server_addr));
 	if(result < 0)
@@ -205,8 +207,33 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	listen(soc, 5);
+	int client_length = sizeof(client_addr);
+	int newsoc = accept(soc, (struct sockaddr *)&client_addr, &client_length);
+	if(newsoc < 0)
+	{
+		perror("Error with incoming message");
+		exit(1);
+	}
 
-	//TODO: wait for connection from client
+	char buffer[8];
+	bzero(buffer, 8);
+	int recieved = read(newsoc, buffer, 7);
+	if(recieved < 0)
+	{
+		perror("Error reading message");
+		exit(1);
+	}
+	printf("Message: %s\n", buffer);
+	strcpy(buffer, "Here!");
+	int sent = write(newsoc, buffer, strlen(buffer));
+	if(sent < 0)
+	{
+		perror("Failed to send message");
+	}
+
+	//TODO: wait for and respond to request for data from the client
+
+	close(soc);
 }
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])
