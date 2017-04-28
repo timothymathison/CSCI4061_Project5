@@ -1,3 +1,5 @@
+all: image_manager_server image_manager_client
+
 image_manager_server: server.c
 	gcc -o server server.c
 
