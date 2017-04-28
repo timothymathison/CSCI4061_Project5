@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 	char * server_ip = (char *)malloc(32);
 	char * port = (char *)malloc(8);
 	char * chunk_size = (char *)malloc(8);
+	char * image_type = (char *)malloc(8);
 
 	//check number of arguments
 	if(argc != 2)
@@ -53,17 +54,21 @@ int main(int argc, char *argv[])
 	regex_t re_server;
 	regex_t re_port;
 	regex_t re_chunk_size;
+	rejex_t re_image_type;
 	char r1[] = "^Server = *";
 	char r2[] = "^Port = *";
 	char r3[] = "^Chunk_Size = *";
+	char r4[] = "^ImageType = *";
 	regcomp(&re_server, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_port, r2, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_chunk_size, r3, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_image_type, r4, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
 	//Read config file
 	int port_found = 0;
 	int server_found = 0;
 	int chunk_size_found = 0;
+	int image_type_found = 0;
 	int line_index = 0;
 	int i;
 	for(i = 0; i < stat_info->st_size; i++)
@@ -92,7 +97,12 @@ int main(int argc, char *argv[])
 			strcpy(chunk_size, &line[12]);
 			chunk_size_found = 1;
 		}
-		if(port_found && server_found && chunk_size_found)
+		else if(!image_type_found && regexec(&re_image_type, line, 0, NULL,0) == 0)
+		{
+			strcpy(image_type, &line[11]);
+			image_type_found = 1;
+		}
+		if(port_found && server_found && chunk_size_found && image_type_found)
 		{
 			break;
 		}
@@ -113,6 +123,12 @@ int main(int argc, char *argv[])
 	{
 		printf("No Chunk_Size found in config file %s\n", config_name);
 		exit(1);
+	}
+	if(image_type_found)
+	{
+		regex_t re_image;
+		char re_image[] = "^.*png$|^.*jpg$|^.*gif$|^.*tiff$";
+
 	}
 
 	//remove leading spaces from ip address
