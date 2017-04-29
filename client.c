@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	regex_t re_server;
 	regex_t re_port;
 	regex_t re_chunk_size;
-	rejex_t re_image_type;
+	regex_t re_image_type;
 	char r1[] = "^Server = *";
 	char r2[] = "^Port = *";
 	char r3[] = "^Chunk_Size = *";
@@ -124,11 +124,59 @@ int main(int argc, char *argv[])
 		printf("No Chunk_Size found in config file %s\n", config_name);
 		exit(1);
 	}
+	int image_type_num = 0;
 	if(image_type_found)
 	{
-		regex_t re_image;
-		char re_image[] = "^.*png$|^.*jpg$|^.*gif$|^.*tiff$";
+		while(image_type[0] == ' ')
+		{
+			image_type = &image_type[1];
+		}
+		if(image_type[3] == ' ')
+		{
+			image_type[3] = '\0';
+		}
+		else if(image_type[4] == ' ')
+		{
+			image_type[4] = '\0';
+		}
+		// regex_t re_png;
+		// regex_t re_jpg;
+		// regex_t re_gif;
+		// regex_t re_tiff;
+		char pattern_png[] = "png";
+		char pattern_jpg[] = "jpg";
+		char pattern_gif[] = "gif";
+		char pattern_tiff[] = "tiff";
+		// regcomp(&re_png, pattern_png, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+		// regcomp(&re_jpg, pattern_jpg, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+		// regcomp(&re_gif, pattern_gif, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+		// regcomp(&re_tiff, pattern_tiff, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
+		if(strcmp(image_type, pattern_png) == 0)
+		{
+			image_type_num = 1;
+		}
+		else if(strcmp(image_type, pattern_jpg) == 0)
+		{
+			image_type_num = 2;
+		}
+		else if(strcmp(image_type, pattern_gif) == 0)
+		{
+			image_type_num = 3;
+		}
+		else if(strcmp(image_type, pattern_tiff) == 0)
+		{
+			image_type_num = 4;
+		}
+		else
+		{
+			printf("Image type %s found in config file is invalid\n", image_type);
+			exit(1);
+		}
+	}
+	else
+	{
+		printf("No image type found, continuing in passive mode\n");
 	}
 
 	//remove leading spaces from ip address
