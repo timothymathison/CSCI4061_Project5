@@ -4,6 +4,7 @@
 // StudentID1=ID mathi464
 // StudentID2=ID oneil512
 
+#include <arpa/inet.h>
 #include <string.h>
 #include <stdlib.h>
 #include <regex.h> 
@@ -15,6 +16,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 
 int main(int argc, char *argv[])
 {
@@ -71,6 +73,7 @@ int main(int argc, char *argv[])
 	int image_type_found = 0;
 	int line_index = 0;
 	int i;
+	int passive_mode = 0;
 	for(i = 0; i < stat_info->st_size; i++)
 	{
 		if(config_info[i] != 13 && config_info[i] != 10 && config_info[i] != 0)
@@ -127,6 +130,8 @@ int main(int argc, char *argv[])
 	int image_type_num = 0;
 	if(image_type_found)
 	{
+		passive_mode = 1;
+
 		while(image_type[0] == ' ')
 		{
 			image_type = &image_type[1];
@@ -213,7 +218,7 @@ int main(int argc, char *argv[])
 		int n;
 		for(n = 0; n < 12; n++)
 		{
-			printf("%d\n", server_ip[n]);
+			printf("%c\n", server_ip[n]);
 		}
 		exit(1);
 	}
@@ -244,7 +249,39 @@ int main(int argc, char *argv[])
 	}
 	printf("Message Recieved: %s\n", buffer);
 
-	//TODO: start requesting and processing data from the server
+	// Request catalog file
+	char buffer1[12];
+	bzero(buffer1,12);
+	strcpy(buffer1, "catalog.csv");
+	sent = write(soc, buffer1, strlen(buffer));
+	if(sent < 0)
+	{
+		perror("Failed to send message");
+		exit(1);
+	}
+
+	int len = 0;
+	ioctl(soc, FIONREAD, &len);
+	if (len > 0) {
+		len = read(soc, buffer1, len);
+	}
+
+	if(len < 0)
+	{
+		perror("Failed to recieve message");
+		exit(1);
+	}
+	printf("Catalog Recieved: %s\n", buffer);
+
+	if(passive_mode)
+	{
+		
+
+	}
+	else
+	{
+
+	}
 
 	close(soc);
 }

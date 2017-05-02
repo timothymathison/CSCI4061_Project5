@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
 //#include <pthread.h>
 //#include <time.h>
@@ -198,7 +199,7 @@ int main(int argc, char *argv[])
 	}
 	//printf("%d\n", port_num);
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_addr.s_addr = INADDR_ANY;
 	server_addr.sin_port = htons(port_num);
 	int result = bind(soc, (struct sockaddr *)&server_addr, sizeof(server_addr));
 	if(result < 0)

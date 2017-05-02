@@ -1,1 +1,2 @@
-Port =  5000  Dir = /home/timothy/dir0
+Port =  6000 
+Dir = /home/oneil512/dir0
