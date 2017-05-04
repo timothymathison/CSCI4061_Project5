@@ -279,10 +279,6 @@ int main(int argc, char *argv[])
 			fclose(fp);
 		}
 		int sent = write(newsoc, buffer1, strlen(buffer1));
-		if(sent < 0)
-		{
-			perror("Failed to send message");
-		}
 			
 	}
 	//Get buffer size

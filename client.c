@@ -18,11 +18,13 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 char * get_address(char * line);
 int main(int argc, char *argv[])
 {
 	//char * directory_path = (char *)malloc(1024);
+	struct stat* s = malloc(1024);
 	char * config_name = (char *)malloc(256);
 	FILE * config;
 	char * server_ip = (char *)malloc(32);
@@ -33,6 +35,12 @@ int main(int argc, char *argv[])
 	char * address = (char *)malloc(1024);
 	char * fline = (char *)malloc(1024);
 	char * base = (char *)malloc(256);
+	char * path = (char *)malloc(2048);
+
+	if(stat("images", s) == -1)
+	{
+		mkdir("images", 0700);
+	}
 
 	//check number of arguments
 	if(argc != 2)
@@ -74,10 +82,10 @@ int main(int argc, char *argv[])
 	char r3[] = "^Chunk_Size = *";
 	char r4[] = "^ImageType = *";
 
-	char r5[] = "^.*jpg$";
-	char r6[] = "^.*gif$";
-	char r7[] = "^.*tiff$";
-	char r8[] = "^.*bmp$";
+	char r5[] = "^.*jpg*$";
+	char r6[] = "^.*gif*$";
+	char r7[] = "^.*tiff*$";
+	char r8[] = "^.*bmp*$";
 
 	regcomp(&re_server, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_port, r2, REG_EXTENDED|REG_ICASE|REG_NOSUB);
@@ -271,21 +279,11 @@ int main(int argc, char *argv[])
 	bzero(buffer,c_size);
 	strcpy(buffer, "catalog.csv");
 	sent = write(soc, buffer, strlen(buffer));
-	if(sent == 0)
-	{
-		perror("Failed to send message");
-		exit(1);
-	}
 
 	char cat_buffer[5000];
 	bzero(cat_buffer,5000);
 	int len = read(soc, cat_buffer, 5000);
 
-	if(len < 0)
-	{
-		perror("Failed to recieve message");
-		exit(1);
-	}
 	printf("Catalog Recieved: %s\n", cat_buffer);
 	FILE *f = fopen("catalog.csv", "w+");
 	fputs(cat_buffer, f);
@@ -293,11 +291,9 @@ int main(int argc, char *argv[])
 
 	bzero(buffer,c_size);
 	len = read(soc, buffer, c_size);
-	printf("should be chunk size %s\n", buffer);
 
 	if(!strcmp(buffer, "chunk_size"))
 	{
-		printf("csize is %d\n", c_size);
 		bzero(buffer,c_size);
 		strcpy(buffer, chunk_size);
 		sent = write(soc, buffer, strlen(buffer));
@@ -317,15 +313,23 @@ int main(int argc, char *argv[])
 
 			while(fgets(fline, 1024, fp))
 			{
-				if(regexec(&re_jpg, fline, 0, NULL,0) == 0)
+				
+				address = get_address(fline);
+				if(regexec(&re_jpg, address, 0, NULL,0) == 0)
 				{
 					sprintf(val, "%d", cnt);
-					address = get_address(fline);
 					sent = write(soc, val, strlen(val));
 
 					base = basename(address);
-					f = fopen(base, "wb+");
+					getcwd(path, 256);
+					strcat(path, "/images/");
+					strcat(path, base);
+
+					printf("path %s\n", path);
+
+					f = fopen(path, "wb+");
 					keep_reading = 1;
+
 					while(keep_reading)
 					{
 						bzero(buffer,c_size);
@@ -347,7 +351,7 @@ int main(int argc, char *argv[])
 		}
 
 		//TIF
-		if(!strcmp(image_type, "tif"))
+		if(!strcmp(image_type, "tiff"))
 		{
 			//get name of file
 			FILE * fp = fopen("catalog.csv", "r");
@@ -356,14 +360,19 @@ int main(int argc, char *argv[])
 
 			while(fgets(fline, 1024, fp))
 			{
-				if(regexec(&re_tif, fline, 0, NULL,0) == 0)
+				address = get_address(fline);
+				if(regexec(&re_tif, address, 0, NULL,0) == 0)
 				{
 					sprintf(val, "%d", cnt);
 					address = get_address(fline);
 					sent = write(soc, val, strlen(val));
 
 					base = basename(address);
-					f = fopen(base, "wb+");
+					getcwd(path, 256);
+					strcat(path, "/images/");
+					strcat(path, base);
+
+					f = fopen(path, "wb+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -395,14 +404,19 @@ int main(int argc, char *argv[])
 
 			while(fgets(fline, 1024, fp))
 			{
-				if(regexec(&re_gif, fline, 0, NULL,0) == 0)
+				address = get_address(fline);
+				if(regexec(&re_gif, address, 0, NULL,0) == 0)
 				{
 					sprintf(val, "%d", cnt);
 					address = get_address(fline);
 					sent = write(soc, val, strlen(val));
 
 					base = basename(address);
-					f = fopen(base, "wb+");
+					getcwd(path, 256);
+					strcat(path, "/images/");
+					strcat(path, base);
+
+					f = fopen(path, "wb+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -434,14 +448,20 @@ int main(int argc, char *argv[])
 
 			while(fgets(fline, 1024, fp))
 			{
-				if(regexec(&re_bmp, fline, 0, NULL,0) == 0)
+				address = get_address(fline);
+				if(regexec(&re_bmp, address, 0, NULL,0) == 0)
 				{
 					sprintf(val, "%d", cnt);
 					address = get_address(fline);
 					sent = write(soc, val, strlen(val));
 
 					base = basename(address);
-					f = fopen(base, "wb+");
+					getcwd(path, 256);
+					strcat(path, "/images/");
+					strcat(path, base);
+
+					f = fopen(path, "wb+");
+
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -491,11 +511,15 @@ int main(int argc, char *argv[])
 				cnt += 1;
 			}
 			fclose(f);
+
+			base = basename(address);
+			getcwd(path, 256);
+			strcat(path, "/images/");
+			strcat(path, base);
 			
-			//Send file request and read back file, hardcoded 500 as chunk size
 			sent = write(soc, input, strlen(input));
 			keep_reading = 1;
-			f = fopen(address, "wb+");
+			f = fopen(path, "wb+");
 			keep_reading = 1;
 			while(keep_reading)
 			{
