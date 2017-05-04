@@ -304,6 +304,7 @@ int main(int argc, char *argv[])
 	}
 
 	int keep_reading = 1;
+	FILE * catalog;
 
 	if(passive_mode)
 	{
@@ -311,11 +312,11 @@ int main(int argc, char *argv[])
 		if(!strcmp(image_type, "jpg"))
 		{
 			//get name of file
-			FILE * fp = fopen("catalog.csv", "r");
+			catalog = fopen("catalog.csv", "r");
 			int cnt = 0;
 			char val[8];
 
-			while(fgets(fline, 1024, fp))
+			while(fgets(fline, 1024, catalog))
 			{
 				
 				address = get_address(fline);
@@ -350,7 +351,7 @@ int main(int argc, char *argv[])
 				}
 				cnt += 1;
 			}
-			fclose(fp);
+			fclose(catalog);
 
 		}
 
@@ -358,11 +359,11 @@ int main(int argc, char *argv[])
 		if(!strcmp(image_type, "tiff"))
 		{
 			//get name of file
-			FILE * fp = fopen("catalog.csv", "r");
+			catalog = fopen("catalog.csv", "r");
 			int cnt = 0;
 			char val[8];
 
-			while(fgets(fline, 1024, fp))
+			while(fgets(fline, 1024, catalog))
 			{
 				address = get_address(fline);
 				if(regexec(&re_tif, address, 0, NULL,0) == 0)
@@ -394,7 +395,7 @@ int main(int argc, char *argv[])
 				}
 				cnt += 1;
 			}
-			fclose(fp);
+			fclose(catalog);
 
 		}
 
@@ -402,11 +403,11 @@ int main(int argc, char *argv[])
 		if(!strcmp(image_type, "gif"))
 		{
 			//get name of file
-			FILE * fp = fopen("catalog.csv", "r");
+			catalog = fopen("catalog.csv", "r");
 			int cnt = 0;
 			char val[8];
 
-			while(fgets(fline, 1024, fp))
+			while(fgets(fline, 1024, catalog))
 			{
 				address = get_address(fline);
 				if(regexec(&re_gif, address, 0, NULL,0) == 0)
@@ -438,7 +439,7 @@ int main(int argc, char *argv[])
 				}
 				cnt += 1;
 			}
-			fclose(fp);
+			fclose(catalog);
 
 		}
 		
@@ -446,11 +447,11 @@ int main(int argc, char *argv[])
 		if(!strcmp(image_type, "png"))
 		{
 			//get name of file
-			FILE * fp = fopen("catalog.csv", "r");
+			catalog = fopen("catalog.csv", "r");
 			int cnt = 0;
 			char val[8];
 
-			while(fgets(fline, 1024, fp))
+			while(fgets(fline, 1024, catalog))
 			{
 				address = get_address(fline);
 				if(regexec(&re_png, address, 0, NULL,0) == 0)
@@ -483,7 +484,7 @@ int main(int argc, char *argv[])
 				}
 				cnt += 1;
 			}
-			fclose(fp);
+			fclose(catalog);
 
 		}
 
@@ -505,8 +506,8 @@ int main(int argc, char *argv[])
 			//get name of file
 			int num = atoi(input);
 			int cnt = 0;
-			f = fopen("catalog.csv", "r");
-			while(fgets(fline, 1024, f))
+			catalog = fopen("catalog.csv", "r");
+			while(fgets(fline, 1024, catalog))
 			{
 				if(cnt == num)
 				{
@@ -514,7 +515,7 @@ int main(int argc, char *argv[])
 				}
 				cnt += 1;
 			}
-			fclose(f);
+			fclose(catalog);
 
 			base = basename(address);
 			getcwd(path, 256);
@@ -560,13 +561,18 @@ int main(int argc, char *argv[])
 	fputs("</head>", html);
 	fputs("<body>\n", html);
 	fputs("<h1>Downloaded Images</h1>", html);
-	printf("Here\n");
+	
 	getcwd(catalog_path, 1024);
 	strcat(catalog_path, "/catalog.csv");
-	printf("%s\n", catalog_path);
-	FILE * catalog = fopen(catalog_path, "r+");
-
+	
+	catalog = fopen("catalog.csv", "r");
+	if(catalog == NULL)
+	{
+		perror("Could not open catalog.csv file");
+		exit(1);
+	}
 	bzero(fline, 1024);
+	fgets(fline, 1024, catalog); //skip first line
 	while(fgets(fline, 1024, catalog))
 	{
 		strcpy(image_path, "./images/");
