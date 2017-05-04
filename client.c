@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
 
 					printf("path %s\n", path);
 
-					f = fopen(path, "ab+");
+					f = fopen(path, "wb+");
 					keep_reading = 1;
 
 					while(keep_reading)
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "ab+");
+					f = fopen(path, "wb+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "ab+");
+					f = fopen(path, "wb+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -465,7 +465,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "ab+");
+					f = fopen(path, "wb+");
 
 					keep_reading = 1;
 					while(keep_reading)
@@ -524,7 +524,7 @@ int main(int argc, char *argv[])
 			
 			sent = write(soc, input, strlen(input));
 			keep_reading = 1;
-			f = fopen(path, "ab+");
+			f = fopen(path, "wb+");
 			keep_reading = 1;
 			int tot = 0;
 			while(keep_reading)
@@ -533,8 +533,7 @@ int main(int argc, char *argv[])
 				len = read(soc, buffer, c_size);
 				tot += len;
 				//printf("read is %d\n", len);
-				//printf("tot is %d\n", tot);
-				fputs(buffer, f);
+				fwrite(buffer, 1, len, f);
 				if(len < c_size)
 				{
 					keep_reading = 0;
