@@ -252,7 +252,6 @@ int main(int argc, char *argv[])
 		perror("Error reading message");
 		exit(1);
 	}
-	printf("%s\n", buffer);
 	
 	if(!strcmp("catalog.csv",buffer))
 	{
@@ -288,53 +287,54 @@ int main(int argc, char *argv[])
 		{
 			break;
 		} 
+
 		int num = atoi(buffer);
 		int cnt = 0;
+
+		//Get file name
 		while(fgets(fline, 1024, fp))
 		{
 			if(cnt == num)
 			{
-				printf("%s\n", fline);
 				address = get_address(fline);
-				printf("%s\n", address);
-
-				// Send file
-				FILE *f = fopen(address, "rb");
-				if (f != NULL)
-				{
-					fseek (f, 0, SEEK_END);
-					int len_f = ftell(f);
-					fseek (f, 0, SEEK_SET);
-					buffer2 = (char *)malloc(len_f);
-					if (buffer2)
-					{
-						fread (buffer2, 1, len_f, f);
-						fclose(f);
-						//change these to chunk size
-						//replace all 500/3000 with chucnk size
-						int total = len_f;
-						printf("%d\n total is", total); 
-						int amount = min(total, 500);
-						int top = ceil(len_f / (double)500);
-						for(k = 0; k < top; k++)
-						{
-							bzero(buffer, 3000);
-							amount = min(total, 500);
-							for(w = 0; w < amount; w++)
-							{
-								buffer[w] = buffer2[(k * 500) + w];
-							}
-							sent = write(newsoc, buffer, amount);
-							printf("%d bytes sent\n", sent);
-							printf("%d new total is\n", total);
-							printf("%d amount is\n", amount);
-							total -= amount;
-							printf("%d final total is\n", total);
-						}
-					}
-				}
+				break;
 			}
 			cnt += 1;
+
+		}
+
+		// Send file
+		FILE *f = fopen(address, "rb");
+		if (f != NULL)
+		{
+			fseek (f, 0, SEEK_END);
+			int len_f = ftell(f);
+			fseek (f, 0, SEEK_SET);
+			buffer2 = (char *)calloc(len_f, 1);
+
+			fread (buffer2, 1, len_f, f);
+			fclose(f);
+
+			//change these to chunk size
+			//replace all 500/3000 with chucnk size
+
+			int total = len_f;
+			int amount = min(total, 500);
+			int top = ceil(len_f / (double)500);
+
+			for(k = 0; k < top; k++)
+			{
+				bzero(buffer, 3000);
+				amount = min(total, 500);
+
+				for(w = 0; w < amount; w++)
+				{
+					buffer[w] = buffer2[(k * 500) + w];
+				}
+
+				sent = write(newsoc, buffer, amount);
+				total -= amount;
+			}
 		}
 	}
 	fclose(fp);

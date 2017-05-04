@@ -300,6 +300,7 @@ int main(int argc, char *argv[])
 			scanf("%s", input);
 
 			if(!strcmp(input, "0"))
+
 			{
 				sent = write(soc, input, strlen(input));
 				break;
@@ -313,7 +314,6 @@ int main(int argc, char *argv[])
 				if(cnt == num)
 				{
 					address = get_address(fline);
-					printf("address is %s\n", address);
 				}
 				cnt += 1;
 			}
@@ -323,13 +323,12 @@ int main(int argc, char *argv[])
 			sent = write(soc, input, strlen(input));
 			base = basename(address);
 			int keep_reading = 1;
-			printf("%s base\n", base);
 			f = fopen(base, "wb+");
+			keep_reading = 1;
 			while(keep_reading)
 			{
 				bzero(buffer,500);
 				len = read(soc, buffer, 500);
-				printf("%d amount read\n", len);
 				fputs(buffer, f);
 				if(len < 500)
 				{
@@ -337,9 +336,7 @@ int main(int argc, char *argv[])
 				}
 			}
 			fclose(f);
-	
-			
-			
+			printf("Downloaded %s\n", address);
 		}
 	}
 
