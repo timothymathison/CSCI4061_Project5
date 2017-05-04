@@ -1,3 +1,5 @@
-Server = 128.101.38.193
-Port = 9801  
+Server = 128.101.37.12
+Port = 9811  
 Chunk_Size = 500
+ImageType = jpg
+

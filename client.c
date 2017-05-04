@@ -63,14 +63,31 @@ int main(int argc, char *argv[])
 	regex_t re_port;
 	regex_t re_chunk_size;
 	regex_t re_image_type;
+
+	regex_t re_jpg;
+	regex_t re_gif;
+	regex_t re_tif;
+	regex_t re_bmp;
+
 	char r1[] = "^Server = *";
 	char r2[] = "^Port = *";
 	char r3[] = "^Chunk_Size = *";
 	char r4[] = "^ImageType = *";
+
+	char r5[] = "^.*jpg$";
+	char r6[] = "^.*gif$";
+	char r7[] = "^.*tif$";
+	char r8[] = "^.*bmp$";
+
 	regcomp(&re_server, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_port, r2, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_chunk_size, r3, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_image_type, r4, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+
+	regcomp(&re_jpg, r5, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_gif, r6, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_tif, r7, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_bmp, r8, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
 	//Read config file
 	int port_found = 0;
@@ -281,14 +298,165 @@ int main(int argc, char *argv[])
 	fputs(cat_buffer, f);
 	fclose(f);
 	
+	int keep_reading = 1;
 
 	if(passive_mode)
 	{
+		//JPG
 		if(!strcmp(image_type, "jpg"))
 		{
+			//get name of file
+			FILE * fp = fopen("catalog.csv", "r");
+			int cnt = 0;
+			char val[8];
+
+			while(fgets(fline, 1024, fp))
+			{
+				if(regexec(&re_jpg, fline, 0, NULL,0) == 0)
+				{
+					sprintf(val, "%d", cnt);
+					address = get_address(fline);
+					sent = write(soc, val, strlen(val));
+
+					base = basename(address);
+					f = fopen(base, "wb+");
+					keep_reading = 1;
+					while(keep_reading)
+					{
+						bzero(buffer,500);
+						len = read(soc, buffer, 500);
+						fputs(buffer, f);
+						if(len < 500)
+						{
+							keep_reading = 0;
+						}
+					}
+					fclose(f);
+					printf("Downloaded %s\n", address);
+
+				}
+				cnt += 1;
+			}
+			fclose(fp);
+
+		}
+
+		//TIF
+		if(!strcmp(image_type, "tif"))
+		{
+			//get name of file
+			FILE * fp = fopen("catalog.csv", "r");
+			int cnt = 0;
+			char val[8];
+
+			while(fgets(fline, 1024, fp))
+			{
+				if(regexec(&re_tif, fline, 0, NULL,0) == 0)
+				{
+					sprintf(val, "%d", cnt);
+					address = get_address(fline);
+					sent = write(soc, val, strlen(val));
+
+					base = basename(address);
+					f = fopen(base, "wb+");
+					keep_reading = 1;
+					while(keep_reading)
+					{
+						bzero(buffer,500);
+						len = read(soc, buffer, 500);
+						fputs(buffer, f);
+						if(len < 500)
+						{
+							keep_reading = 0;
+						}
+					}
+					fclose(f);
+					printf("Downloaded %s\n", address);
+
+				}
+				cnt += 1;
+			}
+			fclose(fp);
+
+		}
+
+		//GIF
+		if(!strcmp(image_type, "gif"))
+		{
+			//get name of file
+			FILE * fp = fopen("catalog.csv", "r");
+			int cnt = 0;
+			char val[8];
+
+			while(fgets(fline, 1024, fp))
+			{
+				if(regexec(&re_gif, fline, 0, NULL,0) == 0)
+				{
+					sprintf(val, "%d", cnt);
+					address = get_address(fline);
+					sent = write(soc, val, strlen(val));
+
+					base = basename(address);
+					f = fopen(base, "wb+");
+					keep_reading = 1;
+					while(keep_reading)
+					{
+						bzero(buffer,500);
+						len = read(soc, buffer, 500);
+						fputs(buffer, f);
+						if(len < 500)
+						{
+							keep_reading = 0;
+						}
+					}
+					fclose(f);
+					printf("Downloaded %s\n", address);
+
+				}
+				cnt += 1;
+			}
+			fclose(fp);
 
 		}
 		
+		//BMP
+		if(!strcmp(image_type, "bmp"))
+		{
+			//get name of file
+			FILE * fp = fopen("catalog.csv", "r");
+			int cnt = 0;
+			char val[8];
+
+			while(fgets(fline, 1024, fp))
+			{
+				if(regexec(&re_bmp, fline, 0, NULL,0) == 0)
+				{
+					sprintf(val, "%d", cnt);
+					address = get_address(fline);
+					sent = write(soc, val, strlen(val));
+
+					base = basename(address);
+					f = fopen(base, "wb+");
+					keep_reading = 1;
+					while(keep_reading)
+					{
+						bzero(buffer,500);
+						len = read(soc, buffer, 500);
+						fputs(buffer, f);
+						if(len < 500)
+						{
+							keep_reading = 0;
+						}
+					}
+					fclose(f);
+					printf("Downloaded %s\n", address);
+
+				}
+				cnt += 1;
+			}
+			fclose(fp);
+
+		}
 
 	}
 	else
@@ -322,7 +490,7 @@ int main(int argc, char *argv[])
 			//Send file request and read back file, hardcoded 500 as chunk size
 			sent = write(soc, input, strlen(input));
 			base = basename(address);
-			int keep_reading = 1;
+			keep_reading = 1;
 			f = fopen(base, "wb+");
 			keep_reading = 1;
 			while(keep_reading)
