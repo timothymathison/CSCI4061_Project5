@@ -36,10 +36,12 @@ int main(int argc, char *argv[])
 	FILE * config;
 	char * port = (char *)malloc(8);
 	char * buffer1;
+	char * file_buffer;
 	char * fline = (char *)malloc(2048);
 	char * address = (char *)malloc(1024);
 	char * buffer2; 
 	int k = 0;
+	int c_size;
 	int w = 0;
 
 	//check number of arguments
@@ -275,21 +277,29 @@ int main(int argc, char *argv[])
 		}
 			
 	}
+	//Get buffer size
+	bzero(buffer, 3000);
+	strcpy(buffer, "chunk_size");
+	sent = write(newsoc, buffer, strlen(buffer));
+	recieved = read(newsoc, buffer, 3000);
+	c_size = atoi(buffer);
+	printf("%d chunk size is \n", c_size);
+	file_buffer = (char *)calloc(c_size, 1);
 
 	//Read input of first files to download
 	FILE *fp = fopen(catalog_path, "r");
 	while(1)
 	{
-		bzero(buffer, 3000);
-		recieved = read(newsoc, buffer, 3000);
+		bzero(file_buffer, c_size);
+		recieved = read(newsoc, file_buffer, c_size);
 
-		if(!strcmp(buffer, "0"))
+		if(!strcmp(file_buffer, "0"))
 		{
 			break;
 		} 
 
 		//Get file name
-		int num = atoi(buffer) - 1;
+		int num = atoi(file_buffer) - 1;
 		address = image_paths[num]; 
 
 		// Send file
@@ -304,21 +314,18 @@ int main(int argc, char *argv[])
 			fread (buffer2, 1, len_f, f);
 			fclose(f);
 
-			//change these to chunk size
-			//replace all 500/3000 with chucnk size
-
 			int total = len_f;
-			int amount = min(total, 500);
-			int top = ceil(len_f / (double)500);
+			int amount = min(total, c_size);
+			int top = ceil(len_f / (double)c_size);
 
 			for(k = 0; k < top; k++)
 			{
-				bzero(buffer, 3000);
-				amount = min(total, 500);
+				bzero(file_buffer, c_size);
+				amount = min(total, c_size);
 
 				for(w = 0; w < amount; w++)
 				{
-					buffer[w] = buffer2[(k * 500) + w];
+					buffer[w] = buffer2[(k * c_size) + w];
 				}
 
 				sent = write(newsoc, buffer, amount);

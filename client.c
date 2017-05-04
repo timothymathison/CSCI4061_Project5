@@ -26,9 +26,9 @@ int main(int argc, char *argv[])
 	char * config_name = (char *)malloc(256);
 	FILE * config;
 	char * server_ip = (char *)malloc(32);
-	char * port = (char *)malloc(8);
-	char * chunk_size = (char *)malloc(8);
-	char * image_type = (char *)malloc(8);
+	char * port = (char *)malloc(32);
+	char * chunk_size = (char *)malloc(32);
+	char * image_type = (char *)malloc(32);
 	char * input = (char *)malloc(10);
 	char * address = (char *)malloc(1024);
 	char * fline = (char *)malloc(1024);
@@ -249,7 +249,6 @@ int main(int argc, char *argv[])
 	printf("Conection established with server \n");
 
 	int c_size = atoi(chunk_size);
-	printf("%d\n", c_size);
 	char buffer[c_size];
 	bzero(buffer,c_size);
 	strcpy(buffer, "Hi");
@@ -269,7 +268,7 @@ int main(int argc, char *argv[])
 	printf("Message Recieved: %s\n", buffer);
 
 	// Request catalog file
-	bzero(buffer,500);
+	bzero(buffer,c_size);
 	strcpy(buffer, "catalog.csv");
 	sent = write(soc, buffer, strlen(buffer));
 	if(sent == 0)
@@ -291,7 +290,19 @@ int main(int argc, char *argv[])
 	FILE *f = fopen("catalog.csv", "w+");
 	fputs(cat_buffer, f);
 	fclose(f);
-	
+
+	bzero(buffer,c_size);
+	len = read(soc, buffer, c_size);
+	printf("should be chunk size %s\n", buffer);
+
+	if(!strcmp(buffer, "chunk_size"))
+	{
+		printf("csize is %d\n", c_size);
+		bzero(buffer,c_size);
+		strcpy(buffer, chunk_size);
+		sent = write(soc, buffer, strlen(buffer));
+	}
+
 	int keep_reading = 1;
 
 	if(passive_mode)
@@ -317,10 +328,10 @@ int main(int argc, char *argv[])
 					keep_reading = 1;
 					while(keep_reading)
 					{
-						bzero(buffer,500);
-						len = read(soc, buffer, 500);
+						bzero(buffer,c_size);
+						len = read(soc, buffer, c_size);
 						fputs(buffer, f);
-						if(len < 500)
+						if(len < c_size)
 						{
 							keep_reading = 0;
 						}
@@ -356,10 +367,10 @@ int main(int argc, char *argv[])
 					keep_reading = 1;
 					while(keep_reading)
 					{
-						bzero(buffer,500);
-						len = read(soc, buffer, 500);
+						bzero(buffer,c_size);
+						len = read(soc, buffer, c_size);
 						fputs(buffer, f);
-						if(len < 500)
+						if(len < c_size)
 						{
 							keep_reading = 0;
 						}
@@ -395,10 +406,10 @@ int main(int argc, char *argv[])
 					keep_reading = 1;
 					while(keep_reading)
 					{
-						bzero(buffer,500);
-						len = read(soc, buffer, 500);
+						bzero(buffer,c_size);
+						len = read(soc, buffer, c_size);
 						fputs(buffer, f);
-						if(len < 500)
+						if(len < c_size)
 						{
 							keep_reading = 0;
 						}
@@ -434,10 +445,10 @@ int main(int argc, char *argv[])
 					keep_reading = 1;
 					while(keep_reading)
 					{
-						bzero(buffer,500);
-						len = read(soc, buffer, 500);
+						bzero(buffer,c_size);
+						len = read(soc, buffer, c_size);
 						fputs(buffer, f);
-						if(len < 500)
+						if(len < c_size)
 						{
 							keep_reading = 0;
 						}
@@ -488,10 +499,10 @@ int main(int argc, char *argv[])
 			keep_reading = 1;
 			while(keep_reading)
 			{
-				bzero(buffer,500);
-				len = read(soc, buffer, 500);
+				bzero(buffer,c_size);
+				len = read(soc, buffer, c_size);
 				fputs(buffer, f);
-				if(len < 500)
+				if(len < c_size)
 				{
 					keep_reading = 0;
 				}
