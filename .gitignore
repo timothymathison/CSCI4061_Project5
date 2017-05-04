@@ -48,3 +48,8 @@ Temporary Items
 server
 client
 *.o
+*.jpg
+catalog.csv
+server.config.txt
+client.config.txt
+download.html
