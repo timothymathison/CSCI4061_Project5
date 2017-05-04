@@ -270,8 +270,9 @@ int main(int argc, char *argv[])
 		{
 			fseek (fp, 0, SEEK_END);
 			int length = ftell(fp);
+			printf("%d length\n", length);
 			fseek (fp, 0, SEEK_SET);
-			buffer1 = (char *)malloc(length);
+			buffer1 = (char *)calloc(length, 1);
 			if (buffer1)
 			{
 				fread (buffer1, 1, length, fp);
@@ -287,7 +288,7 @@ int main(int argc, char *argv[])
 	sent = write(newsoc, buffer, strlen(buffer));
 	recieved = read(newsoc, buffer, 3000);
 	c_size = atoi(buffer);
-	printf("%d chunk size is \n", c_size);
+	//`printf("%d chunk size is \n", c_size);
 	file_buffer = (char *)calloc(c_size, 1);
 
 	//Read input of first files to download
@@ -312,6 +313,7 @@ int main(int argc, char *argv[])
 		{
 			fseek (f, 0, SEEK_END);
 			int len_f = ftell(f);
+			printf("%d len of file \n", len_f);
 			fseek (f, 0, SEEK_SET);
 			buffer2 = (char *)calloc(len_f, 1);
 
@@ -332,11 +334,11 @@ int main(int argc, char *argv[])
 					buffer[w] = buffer2[(k * c_size) + w];
 				}
 
-				printf("amount is %d\n", amount);
+				//printf("amount is %d\n", amount);
 				sent = write(newsoc, buffer, amount);
-				printf("sent is %d\n", sent);
+				//printf("sent is %d\n", sent);
 				total -= amount;
-				printf("total left is %d\n", total);
+				//printf("total left is %d\n", total);
 			}
 		}
 	}

@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	regex_t re_jpg;
 	regex_t re_gif;
 	regex_t re_tif;
-	regex_t re_bmp;
+	regex_t re_png;
 
 	char r1[] = "^Server = *";
 	char r2[] = "^Port = *";
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	char r5[] = "^.*jpg*$";
 	char r6[] = "^.*gif*$";
 	char r7[] = "^.*tiff*$";
-	char r8[] = "^.*bmp*$";
+	char r8[] = "^.*png*$";
 
 	regcomp(&re_server, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_port, r2, REG_EXTENDED|REG_ICASE|REG_NOSUB);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 	regcomp(&re_jpg, r5, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_gif, r6, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 	regcomp(&re_tif, r7, REG_EXTENDED|REG_ICASE|REG_NOSUB);
-	regcomp(&re_bmp, r8, REG_EXTENDED|REG_ICASE|REG_NOSUB);
+	regcomp(&re_png, r8, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
 	//Read config file
 	int port_found = 0;
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 
 					printf("path %s\n", path);
 
-					f = fopen(path, "wb+");
+					f = fopen(path, "ab+");
 					keep_reading = 1;
 
 					while(keep_reading)
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "wb+");
+					f = fopen(path, "ab+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -420,7 +420,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "wb+");
+					f = fopen(path, "ab+");
 					keep_reading = 1;
 					while(keep_reading)
 					{
@@ -442,8 +442,8 @@ int main(int argc, char *argv[])
 
 		}
 		
-		//BMP
-		if(!strcmp(image_type, "bmp"))
+		//PNG
+		if(!strcmp(image_type, "png"))
 		{
 			//get name of file
 			FILE * fp = fopen("catalog.csv", "r");
@@ -453,7 +453,7 @@ int main(int argc, char *argv[])
 			while(fgets(fline, 1024, fp))
 			{
 				address = get_address(fline);
-				if(regexec(&re_bmp, address, 0, NULL,0) == 0)
+				if(regexec(&re_png, address, 0, NULL,0) == 0)
 				{
 					sprintf(val, "%d", cnt);
 					address = get_address(fline);
@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					f = fopen(path, "wb+");
+					f = fopen(path, "ab+");
 
 					keep_reading = 1;
 					while(keep_reading)
@@ -523,7 +523,7 @@ int main(int argc, char *argv[])
 			
 			sent = write(soc, input, strlen(input));
 			keep_reading = 1;
-			f = fopen(path, "wb+");
+			f = fopen(path, "ab+");
 			keep_reading = 1;
 			int tot = 0;
 			while(keep_reading)
@@ -531,8 +531,8 @@ int main(int argc, char *argv[])
 				bzero(buffer,c_size);
 				len = read(soc, buffer, c_size);
 				tot += len;
-				printf("read is %d\n", len);
-				printf("tot is %d\n", tot);
+				//printf("read is %d\n", len);
+				//printf("tot is %d\n", tot);
 				fputs(buffer, f);
 				if(len < c_size)
 				{
@@ -562,14 +562,10 @@ int main(int argc, char *argv[])
 	fputs("<h1>Downloaded Images</h1>", html);
 	printf("Here\n");
 	getcwd(catalog_path, 1024);
-	printf("CWD: %s\n", catalog_path);
 	strcat(catalog_path, "/catalog.csv");
-	FILE * catalog = fopen("catalog.csv", "r");
-	if(catalog == NULL)
-	{
-		perror("Could not open catalog.csv file");
-		exit(1);
-	}
+	printf("%s\n", catalog_path);
+	FILE * catalog = fopen(catalog_path, "r+");
+
 	bzero(fline, 1024);
 	while(fgets(fline, 1024, catalog))
 	{
