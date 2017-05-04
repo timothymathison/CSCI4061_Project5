@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
+char * get_address(char * line);
 int main(int argc, char *argv[])
 {
 	//char * directory_path = (char *)malloc(1024);
@@ -292,9 +293,10 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		printf("INTERACTIVE MODE\n Enter 0 to quit of the line number of a file to download\n");
+		printf("INTERACTIVE MODE\n");
 		while(1)
 		{
+			printf("Enter 0 to quit of the line number of a file to download\n");
 			scanf("%s", input);
 
 			if(!strcmp(input, "0"))
@@ -310,18 +312,30 @@ int main(int argc, char *argv[])
 			{
 				if(cnt == num)
 				{
-					address = strtok(fline, ",");
+					address = get_address(fline);
+					printf("address is %s\n", address);
 				}
 				cnt += 1;
 			}
 			fclose(f);
-
+			
+			//Send file request and read back file, hardcoded 500 as chunk size
 			sent = write(soc, input, strlen(input));
-			bzero(buffer,500);
-			len = read(soc, buffer, 500);
 			base = basename(address);
+			int keep_reading = 1;
+			printf("%s base\n", base);
 			f = fopen(base, "wb+");
-			fputs(buffer, f);
+			while(keep_reading)
+			{
+				bzero(buffer,500);
+				len = read(soc, buffer, 500);
+				printf("%d amount read\n", len);
+				fputs(buffer, f);
+				if(len < 500)
+				{
+					keep_reading = 0;
+				}
+			}
 			fclose(f);
 	
 			
@@ -330,4 +344,20 @@ int main(int argc, char *argv[])
 	}
 
 	close(soc);
+}
+
+char * get_address(char * line)
+{
+	char * r = (char *)calloc(1024, 1);
+	int len = strlen(line);
+	int i = 0;
+	for(i = 0; i < len; i++)
+	{
+		if((line[i] == ','))
+		{
+			break;
+		} 
+		r[i] = line[i];
+	}
+	return r;
 }

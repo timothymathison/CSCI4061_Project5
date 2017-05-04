@@ -5,6 +5,7 @@
 // StudentID2=ID oneil512
 
 #include <string.h>
+#include <math.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <stdlib.h>
@@ -25,6 +26,8 @@
 //#include <libgen.h>
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[]);
+int min(int a, int b);
+char * get_address(char * line);
 
 int main(int argc, char *argv[])
 {
@@ -36,6 +39,8 @@ int main(int argc, char *argv[])
 	char * fline = (char *)malloc(2048);
 	char * address = (char *)malloc(1024);
 	char * buffer2; 
+	int k = 0;
+	int w = 0;
 
 	//check number of arguments
 	if(argc != 2)
@@ -289,7 +294,8 @@ int main(int argc, char *argv[])
 		{
 			if(cnt == num)
 			{
-				address = strtok(fline, ",");
+				printf("%s\n", fline);
+				address = get_address(fline);
 				printf("%s\n", address);
 
 				// Send file
@@ -302,13 +308,30 @@ int main(int argc, char *argv[])
 					buffer2 = (char *)malloc(len_f);
 					if (buffer2)
 					{
-						//change these to chunk size
 						fread (buffer2, 1, len_f, f);
-						printf("file is\n");
-						printf("%s\n", buffer2);
-						sent = write(newsoc, buffer2, strlen(buffer));
+						fclose(f);
+						//change these to chunk size
+						//replace all 500/3000 with chucnk size
+						int total = len_f;
+						printf("%d\n total is", total); 
+						int amount = min(total, 500);
+						int top = ceil(len_f / (double)500);
+						for(k = 0; k < top; k++)
+						{
+							bzero(buffer, 3000);
+							amount = min(total, 500);
+							for(w = 0; w < amount; w++)
+							{
+								buffer[w] = buffer2[(k * 500) + w];
+							}
+							sent = write(newsoc, buffer, amount);
+							printf("%d bytes sent\n", sent);
+							printf("%d new total is\n", total);
+							printf("%d amount is\n", amount);
+							total -= amount;
+							printf("%d final total is\n", total);
+						}
 					}
-					fclose(f);
 				}
 			}
 			cnt += 1;
@@ -374,4 +397,25 @@ int search_directory( char * buffer[], int offset, int buffer_length, char dir_n
 	}
 	closedir(directory);
 	return loc - offset;
+}
+
+int min(int a, int b)
+{
+	return (a < b)? a : b;
+}
+
+char * get_address(char * line)
+{
+	char * r = (char *)calloc(1024, 1);
+	int len = strlen(line);
+	int i = 0;
+	for(i = 0; i < len; i++)
+	{
+		if((line[i] == ','))
+		{
+			break;
+		} 
+		r[i] = line[i];
+	}
+	return r;
 }
