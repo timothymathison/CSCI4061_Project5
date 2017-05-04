@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("PID: %ld\n", (long int)getpid());
+	//printf("PID: %ld\n", (long int)getpid());
 
 	struct stat* stat_info = malloc(1024);
 	stat(config_name, stat_info);
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
 					{
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
-						fputs(buffer, f);
+						fwrite(buffer, 1, len, f);
 						if(len < c_size)
 						{
 							keep_reading = 0;
@@ -383,7 +383,8 @@ int main(int argc, char *argv[])
 					{
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
-						fputs(buffer, f);
+						fwrite(buffer, 1, len, f);
+						//fputs(buffer, f);
 						if(len < c_size)
 						{
 							keep_reading = 0;
@@ -427,7 +428,8 @@ int main(int argc, char *argv[])
 					{
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
-						fputs(buffer, f);
+						fwrite(buffer, 1, len, f);
+						//fputs(buffer, f);
 						if(len < c_size)
 						{
 							keep_reading = 0;
@@ -472,7 +474,8 @@ int main(int argc, char *argv[])
 					{
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
-						fputs(buffer, f);
+						fwrite(buffer, 1, len, f);
+						//fputs(buffer, f);
 						if(len < c_size)
 						{
 							keep_reading = 0;
@@ -580,6 +583,7 @@ int main(int argc, char *argv[])
 		int result = read_checksum(fline, sum);
 		if(!result)
 		{
+			printf("%s\n", image_path);
 			md5sum(image_path, calculated_sum);
 			if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 			{
