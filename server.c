@@ -10,7 +10,7 @@
 #include <sys/ioctl.h>
 #include <stdlib.h>
 #include <regex.h> 
-#include <stdio.h>
+//#include <stdio.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/types.h>

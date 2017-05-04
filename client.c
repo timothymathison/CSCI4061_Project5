@@ -24,6 +24,7 @@
 
 char * get_address(char * line);
 int read_checksum(char * line, unsigned char * sum);
+int find_image(char * image, char * directory_path);
 
 int main(int argc, char *argv[])
 {
@@ -563,7 +564,6 @@ int main(int argc, char *argv[])
 	unsigned char calculated_sum[MD5_DIGEST_LENGTH];
 	char * image_path = (char *)malloc(1024);
 	char * image_name;
-	char * catalog_path = (char *)malloc(1024);
 	FILE * html;
 	html = fopen("download.html", "w");
 	fputs("<html>\n", html);
@@ -572,9 +572,6 @@ int main(int argc, char *argv[])
 	fputs("</head>", html);
 	fputs("<body>\n", html);
 	fputs("<h1>Downloaded Images</h1>", html);
-	
-	getcwd(catalog_path, 1024);
-	strcat(catalog_path, "/catalog.csv");
 	
 	catalog = fopen("catalog.csv", "r");
 	if(catalog == NULL)
@@ -588,31 +585,34 @@ int main(int argc, char *argv[])
 	{
 		strcpy(image_path, "./images/");
 		image_name = get_address(fline);
-		strcat(image_path, image_name);
-		int result = read_checksum(fline, sum);
-		if(!result)
+		if(find_image(image_name, "images"))
 		{
-			printf("%s\n", image_path);
-			md5sum(image_path, calculated_sum);
-			if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
+			strcat(image_path, image_name);
+			int result = read_checksum(fline, sum);
+			if(!result)
 			{
-				fprintf(html, "<pre>(Checksum match!)    <a href='Image Link goes here'>%s</pre>\n", image_name);
+				md5sum(image_path, calculated_sum);
+				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
+				{
+					fprintf(html, "<pre>(Checksum match!)    <a href='Image Link goes here'>%s</pre>\n", image_name);
+				}
+				else
+				{
+					fprintf(html, "<pre>(Checksum mismatch!)    %s</pre>\n", image_name);
+				}	
 			}
 			else
 			{
-				fprintf(html, "<pre>(Checksum mismatch!)    %s</pre>\n", image_name);
-			}	
+				fprintf(html, "<pre>(No Checksum in Catalog.csv)    %s</pre>\n", image_name);
+			}
 		}
-		else
-		{
-			fprintf(html, "<pre>(No Checksum in Catalog.csv)    %s</pre>\n", image_name);
-		}
+		
 		bzero(fline, 1024);
 	}
 	fclose(catalog);
 
 	fputs("</body>\n", html);
-	fputs("</html>\n", html);	
+	fputs("</html>\n", html);
 	fclose(html);
 	printf("HTML Created\n");
 
@@ -659,4 +659,27 @@ int read_checksum(char * line, unsigned char * sum)
 		sum[check_i] = line[i + check_i];
 	}
 	return 0;
+}
+
+int find_image(char * image, char * directory_path)
+{
+	DIR* directory;
+	struct dirent *file;
+
+	directory = opendir(directory_path);
+	if(directory != NULL)
+	{
+		while((file = readdir(directory)) != NULL)
+		{
+			if(strcmp(file->d_name, image) == 0)
+			{
+				closedir(directory);
+				return 1;
+			}
+		}
+		closedir(directory);
+		return 0;
+	}
+	perror("Images directory doesn't exist");
+	exit(1);
 }
