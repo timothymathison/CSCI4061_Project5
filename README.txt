@@ -14,3 +14,5 @@ Client:
 
 The program runs in passive mode if client.config.txt has an ImageType line
 
+CONFIG FILES
+Both config files need a space after the equals sign

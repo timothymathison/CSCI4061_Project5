@@ -521,10 +521,14 @@ int main(int argc, char *argv[])
 			keep_reading = 1;
 			f = fopen(path, "wb+");
 			keep_reading = 1;
+			int tot = 0;
 			while(keep_reading)
 			{
 				bzero(buffer,c_size);
 				len = read(soc, buffer, c_size);
+				tot += len;
+				printf("read is %d\n", len);
+				printf("tot is %d\n", tot);
 				fputs(buffer, f);
 				if(len < c_size)
 				{

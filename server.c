@@ -332,8 +332,11 @@ int main(int argc, char *argv[])
 					buffer[w] = buffer2[(k * c_size) + w];
 				}
 
+				printf("amount is %d\n", amount);
 				sent = write(newsoc, buffer, amount);
+				printf("sent is %d\n", sent);
 				total -= amount;
+				printf("total left is %d\n", total);
 			}
 		}
 	}
