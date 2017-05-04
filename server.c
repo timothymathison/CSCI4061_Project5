@@ -25,6 +25,8 @@
 //#include <signal.h>
 #include <libgen.h>
 
+#include "md5sum.h"
+
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[]);
 int min(int a, int b);
 char * get_address(char * line);
@@ -185,12 +187,18 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	fputs("Filename, Size, Checksum\n", catalog);
-
+	unsigned char sum[MD5_DIGEST_LENGTH];
+	int check_i;
 	for (i = 0; i < count; i++)
 	{
 		stat(image_paths[i], stat_info);
-		fprintf(catalog, "%s, %ld\n", basename(image_paths[i]), stat_info->st_size);
-		//TODO: create checksum
+		md5sum(image_paths[i], sum);
+		fprintf(catalog, "%s, %ld,", basename(image_paths[i]), stat_info->st_size);
+		for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
+		{
+			fprintf(catalog, "%02x", sum[i]);
+		}
+		fputs("\n", catalog);		
 	}
 	fclose(catalog);
 
@@ -222,7 +230,7 @@ int main(int argc, char *argv[])
 	}
 	listen(soc, 5);
 	int client_length = sizeof(client_addr);
-	int newsoc = accept(soc, (struct sockaddr *)&client_addr, &client_length);
+	int newsoc = accept(soc, (struct sockaddr *)&client_addr, (socklen_t *)&client_length);
 	if(newsoc < 0)
 	{
 		perror("Error with incoming message");
@@ -336,13 +344,15 @@ int main(int argc, char *argv[])
 	fclose(fp);
 
 	close(soc);
+
+	return 0;
 }
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[])
 {
 	DIR* directory;
 	struct dirent *file;
-	char * name;
+	//char * name;
 	char * path;
 	int loc = offset;
 	int sub_count;
