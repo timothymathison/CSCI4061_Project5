@@ -5,6 +5,8 @@
 // StudentID2=ID oneil512
 
 #include <string.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <regex.h> 
 #include <stdio.h>
@@ -30,6 +32,10 @@ int main(int argc, char *argv[])
 	char * config_name = (char *)malloc(256);
 	FILE * config;
 	char * port = (char *)malloc(8);
+	char * buffer1;
+	char * fline = (char *)malloc(2048);
+	char * address = (char *)malloc(1024);
+	char * buffer2; 
 
 	//check number of arguments
 	if(argc != 2)
@@ -216,8 +222,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	char buffer[8];
-	bzero(buffer, 8);
+	char buffer[3000];
+	bzero(buffer, 3000);
 	int recieved = read(newsoc, buffer, 7);
 	if(recieved < 0)
 	{
@@ -225,6 +231,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	printf("Message: %s\n", buffer);
+	bzero(buffer, 3000);
 	strcpy(buffer, "Here!");
 	int sent = write(newsoc, buffer, strlen(buffer));
 	if(sent < 0)
@@ -232,7 +239,82 @@ int main(int argc, char *argv[])
 		perror("Failed to send message");
 	}
 
-	//TODO: wait for and respond to request for data from the client
+	// Get buffer request
+	bzero(buffer, 3000);
+	recieved = read(newsoc, buffer, 3000);
+	if(recieved == 0)
+	{
+		perror("Error reading message");
+		exit(1);
+	}
+	printf("%s\n", buffer);
+	
+	if(!strcmp("catalog.csv",buffer))
+	{
+		FILE *fp = fopen(catalog_path, "r");
+		if (fp != NULL)
+		{
+			fseek (fp, 0, SEEK_END);
+			int length = ftell(fp);
+			fseek (fp, 0, SEEK_SET);
+			buffer1 = (char *)malloc(length);
+			if (buffer1)
+			{
+				fread (buffer1, 1, length, fp);
+			}
+			fclose(fp);
+		}
+		int sent = write(newsoc, buffer1, strlen(buffer1));
+		if(sent < 0)
+		{
+			perror("Failed to send message");
+		}
+			
+	}
+
+	//Read input of first files to download
+	FILE *fp = fopen(catalog_path, "r");
+	while(1)
+	{
+		bzero(buffer, 3000);
+		recieved = read(newsoc, buffer, 3000);
+
+		if(!strcmp(buffer, "0"))
+		{
+			break;
+		} 
+		int num = atoi(buffer);
+		int cnt = 0;
+		while(fgets(fline, 1024, fp))
+		{
+			if(cnt == num)
+			{
+				address = strtok(fline, ",");
+				printf("%s\n", address);
+
+				// Send file
+				FILE *f = fopen(address, "rb");
+				if (f != NULL)
+				{
+					fseek (f, 0, SEEK_END);
+					int len_f = ftell(f);
+					fseek (f, 0, SEEK_SET);
+					buffer2 = (char *)malloc(len_f);
+					if (buffer2)
+					{
+						//change these to chunk size
+						fread (buffer2, 1, len_f, f);
+						printf("file is\n");
+						printf("%s\n", buffer2);
+						sent = write(newsoc, buffer2, strlen(buffer));
+					}
+					fclose(f);
+				}
+			}
+			cnt += 1;
+		}
+	}
+	fclose(fp);
 
 	close(soc);
 }

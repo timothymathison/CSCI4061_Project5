@@ -4,6 +4,7 @@
 // StudentID1=ID mathi464
 // StudentID2=ID oneil512
 
+#include <libgen.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,6 +28,10 @@ int main(int argc, char *argv[])
 	char * port = (char *)malloc(8);
 	char * chunk_size = (char *)malloc(8);
 	char * image_type = (char *)malloc(8);
+	char * input = (char *)malloc(10);
+	char * address = (char *)malloc(1024);
+	char * fline = (char *)malloc(1024);
+	char * base = (char *)malloc(256);
 
 	//check number of arguments
 	if(argc != 2)
@@ -214,9 +219,9 @@ int main(int argc, char *argv[])
 	int parse_ip = inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
 	if(parse_ip <= 0)
 	{
-		printf("Failed to parse IP address: %s\n", server_ip);("Failed to parse IP address");
+		printf("Failed to parse IP address: %s\n", server_ip);
 		int n;
-		for(n = 0; n < 12; n++)
+		for(n = 0; n < 20; n++)
 		{
 			printf("%c\n", server_ip[n]);
 		}
@@ -231,8 +236,10 @@ int main(int argc, char *argv[])
 	}
 	printf("Conection established with server \n");
 
-	char buffer[8];
-	bzero(buffer,8);
+	int c_size = atoi(chunk_size);
+	printf("%d\n", c_size);
+	char buffer[c_size];
+	bzero(buffer,c_size);
 	strcpy(buffer, "Hi");
 	int sent = write(soc, buffer, strlen(buffer));
 	if(sent < 0)
@@ -250,37 +257,76 @@ int main(int argc, char *argv[])
 	printf("Message Recieved: %s\n", buffer);
 
 	// Request catalog file
-	char buffer1[12];
-	bzero(buffer1,12);
-	strcpy(buffer1, "catalog.csv");
-	sent = write(soc, buffer1, strlen(buffer));
-	if(sent < 0)
+	bzero(buffer,500);
+	strcpy(buffer, "catalog.csv");
+	sent = write(soc, buffer, strlen(buffer));
+	if(sent == 0)
 	{
 		perror("Failed to send message");
 		exit(1);
 	}
 
-	int len = 0;
-	ioctl(soc, FIONREAD, &len);
-	if (len > 0) {
-		len = read(soc, buffer1, len);
-	}
+	char cat_buffer[5000];
+	bzero(cat_buffer,5000);
+	int len = read(soc, cat_buffer, 5000);
 
 	if(len < 0)
 	{
 		perror("Failed to recieve message");
 		exit(1);
 	}
-	printf("Catalog Recieved: %s\n", buffer);
+	printf("Catalog Recieved: %s\n", cat_buffer);
+	FILE *f = fopen("catalog.csv", "w+");
+	fputs(cat_buffer, f);
+	fclose(f);
+	
 
 	if(passive_mode)
 	{
+		if(!strcmp(image_type, "jpg"))
+		{
+
+		}
 		
 
 	}
 	else
 	{
+		printf("INTERACTIVE MODE\n Enter 0 to quit of the line number of a file to download\n");
+		while(1)
+		{
+			scanf("%s", input);
 
+			if(!strcmp(input, "0"))
+			{
+				sent = write(soc, input, strlen(input));
+				break;
+			} 
+			//get name of file
+			int num = atoi(input);
+			int cnt = 0;
+			f = fopen("catalog.csv", "r");
+			while(fgets(fline, 1024, f))
+			{
+				if(cnt == num)
+				{
+					address = strtok(fline, ",");
+				}
+				cnt += 1;
+			}
+			fclose(f);
+
+			sent = write(soc, input, strlen(input));
+			bzero(buffer,500);
+			len = read(soc, buffer, 500);
+			base = basename(address);
+			f = fopen(base, "wb+");
+			fputs(buffer, f);
+			fclose(f);
+	
+			
+			
+		}
 	}
 
 	close(soc);

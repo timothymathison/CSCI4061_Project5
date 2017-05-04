@@ -1,2 +1,2 @@
-Port =  6000 
+Port =  9800 
 Dir = /home/oneil512/dir0

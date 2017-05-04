@@ -1,3 +1,3 @@
-Server = 127.0.0.1
-Port = 6000  
+Server = 128.101.38.193
+Port = 9800  
 Chunk_Size = 500
