@@ -20,7 +20,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "md5sum.h"
+
 char * get_address(char * line);
+int read_checksum(char * line, unsigned char * sum);
+
 int main(int argc, char *argv[])
 {
 	//char * directory_path = (char *)malloc(1024);
@@ -542,6 +546,62 @@ int main(int argc, char *argv[])
 
 	close(soc);
 
+	printf("Creating HTML...\n");
+	unsigned char sum[MD5_DIGEST_LENGTH];
+	unsigned char calculated_sum[MD5_DIGEST_LENGTH];
+	char * image_path = (char *)malloc(1024);
+	char * image_name;
+	char * catalog_path = (char *)malloc(1024);
+	FILE * html;
+	html = fopen("download.html", "w");
+	fputs("<html>\n", html);
+	fputs("<head>\n", html);
+	fputs("<title>Downloaded Images</title>\n", html);
+	fputs("</head>", html);
+	fputs("<body>\n", html);
+	fputs("<h1>Downloaded Images</h1>", html);
+	printf("Here\n");
+	getcwd(catalog_path, 1024);
+	printf("CWD: %s\n", catalog_path);
+	strcat(catalog_path, "/catalog.csv");
+	FILE * catalog = fopen("catalog.csv", "r");
+	if(catalog == NULL)
+	{
+		perror("Could not open catalog.csv file");
+		exit(1);
+	}
+	bzero(fline, 1024);
+	while(fgets(fline, 1024, catalog))
+	{
+		strcpy(image_path, "./images/");
+		image_name = get_address(fline);
+		strcat(image_path, image_name);
+		int result = read_checksum(fline, sum);
+		if(!result)
+		{
+			md5sum(image_path, calculated_sum);
+			if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
+			{
+				fprintf(html, "<pre>(Checksum match!)    <a href='Image Link goes here'>%s</pre>\n", image_name);
+			}
+			else
+			{
+				fprintf(html, "<pre>(Checksum mismatch!)    %s</pre>\n", image_name);
+			}	
+		}
+		else
+		{
+			fprintf(html, "<pre>(No Checksum in Catalog.csv)    %s</pre>\n", image_name);
+		}
+		bzero(fline, 1024);
+	}
+	fclose(catalog);
+
+	fputs("</body>\n", html);
+	fputs("</html>\n", html);	
+	fclose(html);
+	printf("HTML Created\n");
+
 	return 0;
 }
 
@@ -559,4 +619,30 @@ char * get_address(char * line)
 		r[i] = line[i];
 	}
 	return r;
+}
+
+int read_checksum(char * line, unsigned char * sum)
+{
+	int comma_count = 0;
+	int i = 0;
+	int len = strlen(line);
+	//char * sum = (char *)malloc(MD5_DIGEST_LENGTH);
+	while(comma_count < 2)
+	{
+		if(i >= len)
+		{
+			return 1;
+		}
+		if(line[i] == ',')
+		{
+			comma_count++;
+		}
+		i++;
+	}
+	int check_i;
+	for(check_i = i; check_i < MD5_DIGEST_LENGTH; check_i++)
+	{
+		sum[check_i] = line[i + check_i];
+	}
+	return 0;
 }
