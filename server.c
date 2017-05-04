@@ -23,7 +23,8 @@
 //#include <time.h>
 //#include <sys/time.h>
 //#include <signal.h>
-//#include <libgen.h>
+#include <libgen.h>
+
 #include "md5sum.h"
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[]);
@@ -190,14 +191,12 @@ int main(int argc, char *argv[])
 	{
 		stat(image_paths[i], stat_info);
 		md5sum(image_paths[i], sum);
-		fprintf(catalog, "%s, %ld,", image_paths[i], stat_info->st_size);
+		fprintf(catalog, "%s, %ld,", basename(image_paths[i]), stat_info->st_size);
 		for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
 		{
 			fprintf(catalog, "%02x", sum[i]);
 		}
-		fputs("\n", catalog);
-		//TODO: create checksum
-		
+		fputs("\n", catalog);		
 	}
 	fclose(catalog);
 
@@ -297,20 +296,9 @@ int main(int argc, char *argv[])
 			break;
 		} 
 
-		int num = atoi(buffer);
-		int cnt = 0;
-
 		//Get file name
-		while(fgets(fline, 1024, fp))
-		{
-			if(cnt == num)
-			{
-				address = get_address(fline);
-				break;
-			}
-			cnt += 1;
-
-		}
+		int num = atoi(buffer) - 1;
+		address = image_paths[num]; 
 
 		// Send file
 		FILE *f = fopen(address, "rb");
