@@ -334,9 +334,10 @@ int main(int argc, char *argv[])
 
 					f = fopen(path, "wb+");
 					keep_reading = 1;
-
+					int chunks = 0;
 					while(keep_reading)
 					{
+						chunks++;
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
 						fwrite(buffer, 1, len, f);
@@ -346,7 +347,7 @@ int main(int argc, char *argv[])
 						}
 					}
 					fclose(f);
-					printf("Downloaded %s\n", address);
+					printf("Downloaded %s in %d chunks\n", address, chunks);
 
 				}
 				cnt += 1;
@@ -379,8 +380,10 @@ int main(int argc, char *argv[])
 
 					f = fopen(path, "wb+");
 					keep_reading = 1;
+					int chunks = 0;
 					while(keep_reading)
 					{
+						chunks++;
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
 						fwrite(buffer, 1, len, f);
@@ -391,7 +394,7 @@ int main(int argc, char *argv[])
 						}
 					}
 					fclose(f);
-					printf("Downloaded %s\n", address);
+					printf("Downloaded %s in %d chunks\n", address, chunks);
 
 				}
 				cnt += 1;
@@ -424,8 +427,10 @@ int main(int argc, char *argv[])
 
 					f = fopen(path, "wb+");
 					keep_reading = 1;
+					int chunks = 0;
 					while(keep_reading)
 					{
+						chunks++;
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
 						fwrite(buffer, 1, len, f);
@@ -436,7 +441,7 @@ int main(int argc, char *argv[])
 						}
 					}
 					fclose(f);
-					printf("Downloaded %s\n", address);
+					printf("Downloaded %s in %d chunks\n", address, chunks);
 
 				}
 				cnt += 1;
@@ -470,8 +475,10 @@ int main(int argc, char *argv[])
 					f = fopen(path, "wb+");
 
 					keep_reading = 1;
+					int chunks = 0;
 					while(keep_reading)
 					{
+						chunks++;
 						bzero(buffer,c_size);
 						len = read(soc, buffer, c_size);
 						fwrite(buffer, 1, len, f);
@@ -482,7 +489,7 @@ int main(int argc, char *argv[])
 						}
 					}
 					fclose(f);
-					printf("Downloaded %s\n", address);
+					printf("Downloaded %s in %d chunks\n", address, chunks);
 
 				}
 				cnt += 1;
@@ -530,8 +537,10 @@ int main(int argc, char *argv[])
 			f = fopen(path, "wb+");
 			keep_reading = 1;
 			int tot = 0;
+			int chunks = 0;
 			while(keep_reading)
 			{
+				chunks++;
 				bzero(buffer,c_size);
 				len = read(soc, buffer, c_size);
 				tot += len;
@@ -543,7 +552,7 @@ int main(int argc, char *argv[])
 				}
 			}
 			fclose(f);
-			printf("Downloaded %s\n", address);
+			printf("Downloaded %s in %d chunks\n", address, chunks);
 		}
 	}
 
