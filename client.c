@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 	char r5[] = "^.*jpg$";
 	char r6[] = "^.*gif$";
-	char r7[] = "^.*tif$";
+	char r7[] = "^.*tiff$";
 	char r8[] = "^.*bmp$";
 
 	regcomp(&re_server, r1, REG_EXTENDED|REG_ICASE|REG_NOSUB);
@@ -150,6 +150,12 @@ int main(int argc, char *argv[])
 		printf("No Chunk_Size found in config file %s\n", config_name);
 		exit(1);
 	}
+
+	char pattern_png[] = "png";
+	char pattern_jpg[] = "jpg";
+	char pattern_gif[] = "gif";
+	char pattern_tiff[] = "tiff";
+
 	int image_type_num = 0;
 	if(image_type_found)
 	{
@@ -167,18 +173,6 @@ int main(int argc, char *argv[])
 		{
 			image_type[4] = '\0';
 		}
-		// regex_t re_png;
-		// regex_t re_jpg;
-		// regex_t re_gif;
-		// regex_t re_tiff;
-		char pattern_png[] = "png";
-		char pattern_jpg[] = "jpg";
-		char pattern_gif[] = "gif";
-		char pattern_tiff[] = "tiff";
-		// regcomp(&re_png, pattern_png, REG_EXTENDED|REG_ICASE|REG_NOSUB);
-		// regcomp(&re_jpg, pattern_jpg, REG_EXTENDED|REG_ICASE|REG_NOSUB);
-		// regcomp(&re_gif, pattern_gif, REG_EXTENDED|REG_ICASE|REG_NOSUB);
-		// regcomp(&re_tiff, pattern_tiff, REG_EXTENDED|REG_ICASE|REG_NOSUB);
 
 		if(strcmp(image_type, pattern_png) == 0)
 		{
@@ -489,9 +483,8 @@ int main(int argc, char *argv[])
 			
 			//Send file request and read back file, hardcoded 500 as chunk size
 			sent = write(soc, input, strlen(input));
-			base = basename(address);
 			keep_reading = 1;
-			f = fopen(base, "wb+");
+			f = fopen(address, "wb+");
 			keep_reading = 1;
 			while(keep_reading)
 			{

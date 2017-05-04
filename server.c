@@ -23,7 +23,7 @@
 //#include <time.h>
 //#include <sys/time.h>
 //#include <signal.h>
-//#include <libgen.h>
+#include <libgen.h>
 
 int search_directory( char * buffer[], int offset, int buffer_length, char dir_name[]);
 int min(int a, int b);
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < count; i++)
 	{
 		stat(image_paths[i], stat_info);
-		fprintf(catalog, "%s, %ld\n", image_paths[i], stat_info->st_size);
+		fprintf(catalog, "%s, %ld\n", basename(image_paths[i]), stat_info->st_size);
 		//TODO: create checksum
 	}
 	fclose(catalog);
@@ -288,20 +288,9 @@ int main(int argc, char *argv[])
 			break;
 		} 
 
-		int num = atoi(buffer);
-		int cnt = 0;
-
 		//Get file name
-		while(fgets(fline, 1024, fp))
-		{
-			if(cnt == num)
-			{
-				address = get_address(fline);
-				break;
-			}
-			cnt += 1;
-
-		}
+		int num = atoi(buffer) - 1;
+		address = image_paths[num]; 
 
 		// Send file
 		FILE *f = fopen(address, "rb");
