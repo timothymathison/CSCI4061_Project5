@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	}
 
 	struct sockaddr_in server_addr;
-	struct hostent * server;
+	//struct hostent * server;
 	int port_num = atoi(port);
 	if(port_num == 0)
 	{
@@ -509,6 +509,8 @@ int main(int argc, char *argv[])
 	}
 
 	close(soc);
+
+	return 0;
 }
 
 char * get_address(char * line)
