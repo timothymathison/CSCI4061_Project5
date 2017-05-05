@@ -559,6 +559,7 @@ int main(int argc, char *argv[])
 
 	close(soc);
 
+	//Create html and compute checksum for each downloaded image
 	printf("Creating HTML...\n");
 	unsigned char sum[MD5_DIGEST_LENGTH];
 	unsigned char calculated_sum[MD5_DIGEST_LENGTH];
@@ -594,7 +595,7 @@ int main(int argc, char *argv[])
 				md5sum(image_path, calculated_sum);
 				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 				{
-					fprintf(html, "<pre>(Checksum match!)    <a href='Image Link goes here'>%s</pre>\n", image_name);
+					fprintf(html, "<pre>(Checksum match!)    <a href='%s'>%s</pre>\n",image_path, image_name);
 				}
 				else
 				{

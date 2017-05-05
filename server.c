@@ -10,7 +10,6 @@
 #include <sys/ioctl.h>
 #include <stdlib.h>
 #include <regex.h> 
-//#include <stdio.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -19,10 +18,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
-//#include <pthread.h>
-//#include <time.h>
-//#include <sys/time.h>
-//#include <signal.h>
 #include <libgen.h>
 
 #include "md5sum.h"
@@ -62,8 +57,6 @@ int main(int argc, char *argv[])
 		perror("Server config can't be found");
 		exit(1);
 	}
-
-	printf("PID: %ld\n", (long int)getpid());
 
 	struct stat* stat_info = malloc(1024);
 	stat(config_name, stat_info);
@@ -159,14 +152,15 @@ int main(int argc, char *argv[])
 	closedir(directory);
 
 	//create list of image files in directory path
-	int buffer_length = 256;
-	char * image_paths[buffer_length];
+	int buffer_length = 1024;
+	//char * image_paths[buffer_length];
+	char * *image_paths = calloc(buffer_length, sizeof(char*));
 	int count = 0;
 	count = search_directory(image_paths, 0, buffer_length, directory_path);
 	while(count == -1)
 	{
 		buffer_length = 2 * buffer_length;
-		char * image_paths[buffer_length]; //this doesn't work need to find another way to resize
+		*image_paths = calloc(buffer_length, sizeof(char*));
 		count = search_directory(image_paths, 0, buffer_length, directory_path);
 	}
 
@@ -345,6 +339,7 @@ int main(int argc, char *argv[])
 	fclose(fp);
 
 	close(soc);
+	close(newsoc);
 
 	return 0;
 }
