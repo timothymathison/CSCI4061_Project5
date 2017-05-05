@@ -331,8 +331,6 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					printf("path %s\n", path);
-
 					f = fopen(path, "wb+");
 					keep_reading = 1;
 					int chunks = 0;
