@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	char * port = (char *)malloc(8);
 	char * buffer1;
 	char * file_buffer;
-	char * fline = (char *)malloc(2048);
+	//char * fline = (char *)malloc(2048);
 	char * address = (char *)malloc(1024);
 	char * buffer2; 
 	int k = 0;
@@ -295,6 +295,7 @@ int main(int argc, char *argv[])
 
 		if(!strcmp(file_buffer, "0"))
 		{
+			printf("Terminate command recieved from client, Exiting\n");
 			break;
 		} 
 

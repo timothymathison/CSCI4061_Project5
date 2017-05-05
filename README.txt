@@ -4,7 +4,7 @@ Timothy Mathison
 oneil512
 mathi464
 
-To make our program, type make
+To make our program, type "make"
 
 Server:
 ./server server.config.txt

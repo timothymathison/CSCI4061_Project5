@@ -28,7 +28,6 @@ int find_image(char * image, char * directory_path);
 
 int main(int argc, char *argv[])
 {
-	//char * directory_path = (char *)malloc(1024);
 	struct stat* s = malloc(1024);
 	char * config_name = (char *)malloc(256);
 	FILE * config;
@@ -63,8 +62,6 @@ int main(int argc, char *argv[])
 		perror("Client config can't be found");
 		exit(1);
 	}
-
-	//printf("PID: %ld\n", (long int)getpid());
 
 	struct stat* stat_info = malloc(1024);
 	stat(config_name, stat_info);
@@ -205,13 +202,10 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			printf("Image type %s found in config file is invalid\n", image_type);
+			printf("ImageType %s found in config file is invalid\n", image_type);
+			printf("Valid ImageTypes: 'jpg', 'png', 'gif', 'tiff'\n");
 			exit(1);
 		}
-	}
-	else
-	{
-		printf("No image type found, continuing in passive mode\n");
 	}
 
 	//remove leading spaces from ip address
@@ -222,6 +216,10 @@ int main(int argc, char *argv[])
 	printf("Server: %s\n", server_ip);
 	printf("Port: %s\n", port);
 	printf("Chunk_Size: %s\n",chunk_size);
+	if(image_type_num != 0)
+	{
+		printf("ImageType: %s\n", image_type);
+	}
 	
 	//Create socket
 	int soc = socket(AF_INET, SOCK_STREAM, 0);
@@ -232,7 +230,6 @@ int main(int argc, char *argv[])
 	}
 
 	struct sockaddr_in server_addr;
-	//struct hostent * server;
 	int port_num = atoi(port);
 	if(port_num == 0)
 	{
@@ -253,7 +250,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("Conecting with server IP: %s\n", server_ip);
+	printf("Conecting with server IP: %s Port: %s\n", server_ip, port);
 	if(connect(soc, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 	{
 		perror("Failed to connect to the server");
@@ -289,8 +286,10 @@ int main(int argc, char *argv[])
 	bzero(cat_buffer,5000);
 	int len = read(soc, cat_buffer, 5000);
 
-	printf("Catalog Recieved: \n");
-	printf("%s\n", cat_buffer);
+	printf("============================================================\n");
+	printf("Catalog Recieved, Dumping Contents: \n");
+	printf("%s", cat_buffer);
+	printf("============================================================\n");
 	FILE *f = fopen("catalog.csv", "w+");
 	fputs(cat_buffer, f);
 	fclose(f);
@@ -310,6 +309,7 @@ int main(int argc, char *argv[])
 
 	if(passive_mode)
 	{
+		printf("Running in Passive Mode... Downloading '%s' files...\n", image_type);
 		//JPG
 		if(!strcmp(image_type, "jpg"))
 		{
@@ -356,8 +356,8 @@ int main(int argc, char *argv[])
 
 		}
 
-		//TIF
-		if(!strcmp(image_type, "tiff"))
+		//TIFF
+		else if(!strcmp(image_type, "tiff"))
 		{
 			//get name of file
 			catalog = fopen("catalog.csv", "r");
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
 		}
 
 		//GIF
-		if(!strcmp(image_type, "gif"))
+		else if(!strcmp(image_type, "gif"))
 		{
 			//get name of file
 			catalog = fopen("catalog.csv", "r");
@@ -451,7 +451,7 @@ int main(int argc, char *argv[])
 		}
 		
 		//PNG
-		if(!strcmp(image_type, "png"))
+		else if(!strcmp(image_type, "png"))
 		{
 			//get name of file
 			catalog = fopen("catalog.csv", "r");
@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		printf("INTERACTIVE MODE\n");
+		printf("Running in Interactive Mode...\n");
 		while(1)
 		{
 			printf("Enter 0 to quit of the line number of a file to download\n");
@@ -598,7 +598,7 @@ int main(int argc, char *argv[])
 
 				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 				{
-					fprintf(html, "<pre>(Checksum match!)    <a href='%s'>%s</pre>\n",image_path, image_name);
+					fprintf(html, "<pre>(Checksum match!)    <a href='%s'>%s</a></pre>\n",image_path, image_name);
 				}
 				else
 				{
