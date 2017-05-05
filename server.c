@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 		fprintf(catalog, "%s, %ld,", basename(image_paths[i]), stat_info->st_size);
 		for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
 		{
-			fprintf(catalog, "%02x", sum[i]);
+			fprintf(catalog, "%02x", sum[check_i]);
 		}
 		fputs("\n", catalog);		
 	}
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
 		perror("Error reading message");
 		exit(1);
 	}
-	printf("Message: %s\n", buffer);
+	printf("Message from Client: %s\n", buffer);
 	bzero(buffer, 3000);
 	strcpy(buffer, "Here!");
 	int sent = write(newsoc, buffer, strlen(buffer));
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 		{
 			fseek (fp, 0, SEEK_END);
 			int length = ftell(fp);
-			printf("%d length\n", length);
+			//printf("%d length\n", length);
 			fseek (fp, 0, SEEK_SET);
 			buffer1 = (char *)calloc(length, 1);
 			if (buffer1)
@@ -274,6 +274,7 @@ int main(int argc, char *argv[])
 			fclose(fp);
 		}
 		int sent = write(newsoc, buffer1, strlen(buffer1));
+		printf("catalog.csv sent, %d bytes transmitted\n", sent);
 			
 	}
 	//Get buffer size
@@ -307,7 +308,6 @@ int main(int argc, char *argv[])
 		{
 			fseek (f, 0, SEEK_END);
 			int len_f = ftell(f);
-			printf("%d len of file \n", len_f);
 			fseek (f, 0, SEEK_SET);
 			buffer2 = (char *)calloc(len_f, 1);
 
@@ -328,12 +328,10 @@ int main(int argc, char *argv[])
 					buffer[w] = buffer2[(k * c_size) + w];
 				}
 
-				//printf("amount is %d\n", amount);
 				sent = write(newsoc, buffer, amount);
-				//printf("sent is %d\n", sent);
 				total -= amount;
-				//printf("total left is %d\n", total);
 			}
+			printf("%s sent, %d bytes transmitted\n", basename(address), len_f);
 		}
 	}
 	fclose(fp);

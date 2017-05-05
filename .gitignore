@@ -53,3 +53,4 @@ catalog.csv
 server.config.txt
 client.config.txt
 download.html
+*.config

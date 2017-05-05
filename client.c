@@ -253,13 +253,13 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("Conecting with server IP: %d\n", server_addr.sin_addr.s_addr);
+	printf("Conecting with server IP: %s\n", server_ip);
 	if(connect(soc, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 	{
 		perror("Failed to connect to the server");
 		exit(1);
 	}
-	printf("Conection established with server \n");
+	printf("Conection Established with Server \n");
 
 	int c_size = atoi(chunk_size);
 	char buffer[c_size];
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 		perror("Failed to recieve message");
 		exit(1);
 	}
-	printf("Message Recieved: %s\n", buffer);
+	printf("Response Recieved from Server: %s\n", buffer);
 
 	// Request catalog file
 	bzero(buffer,c_size);
@@ -289,7 +289,8 @@ int main(int argc, char *argv[])
 	bzero(cat_buffer,5000);
 	int len = read(soc, cat_buffer, 5000);
 
-	printf("Catalog Recieved: %s\n", cat_buffer);
+	printf("Catalog Recieved: \n");
+	printf("%s\n", cat_buffer);
 	FILE *f = fopen("catalog.csv", "w+");
 	fputs(cat_buffer, f);
 	fclose(f);
@@ -496,6 +497,7 @@ int main(int argc, char *argv[])
 			fclose(catalog);
 
 		}
+		write(soc, "0", 1);
 
 	}
 	else
@@ -558,7 +560,7 @@ int main(int argc, char *argv[])
 	close(soc);
 
 	//Create html and compute checksum for each downloaded image
-	printf("Creating HTML...\n");
+	printf("Creating HTML and Computing Checksums...\n");
 	unsigned char sum[MD5_DIGEST_LENGTH];
 	unsigned char calculated_sum[MD5_DIGEST_LENGTH];
 	char * image_path = (char *)malloc(1024);
@@ -568,9 +570,9 @@ int main(int argc, char *argv[])
 	fputs("<html>\n", html);
 	fputs("<head>\n", html);
 	fputs("<title>Downloaded Images</title>\n", html);
-	fputs("</head>", html);
+	fputs("</head>\n", html);
 	fputs("<body>\n", html);
-	fputs("<h1>Downloaded Images</h1>", html);
+	fputs("<h1>Downloaded Images</h1>\n", html);
 	
 	catalog = fopen("catalog.csv", "r");
 	if(catalog == NULL)
@@ -586,18 +588,14 @@ int main(int argc, char *argv[])
 		image_name = get_address(fline);
 		if(find_image(image_name, "images"))
 		{
-			strcat(image_path, image_name);
+			strcat(image_path, image_name);;
+			bzero(sum, MD5_DIGEST_LENGTH);
+			bzero(calculated_sum, MD5_DIGEST_LENGTH);
 			int result = read_checksum(fline, sum);
 			if(!result)
 			{
 				md5sum(image_path, calculated_sum);
-				int check_i = 0;
-				printf("----------------------------");
-				for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
-				{
-					printf("%02x", sum[i]);
-					printf("%02x\n", calculated_sum[i]);
-				}
+
 				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 				{
 					fprintf(html, "<pre>(Checksum match!)    <a href='%s'>%s</pre>\n",image_path, image_name);
@@ -621,6 +619,7 @@ int main(int argc, char *argv[])
 	fputs("</html>\n", html);
 	fclose(html);
 	printf("HTML Created\n");
+	printf("Exiting\n");
 
 	return 0;
 }
@@ -646,7 +645,8 @@ int read_checksum(char * line, unsigned char * sum)
 	int comma_count = 0;
 	int i = 0;
 	int len = strlen(line);
-	//char * sum = (char *)malloc(MD5_DIGEST_LENGTH);
+	char * str = (char *)malloc(3);
+	bzero(str, 3);
 	while(comma_count < 2)
 	{
 		if(i >= len)
@@ -660,9 +660,11 @@ int read_checksum(char * line, unsigned char * sum)
 		i++;
 	}
 	int check_i;
-	for(check_i = i; check_i < MD5_DIGEST_LENGTH; check_i++)
+	for(check_i = 0; check_i < MD5_DIGEST_LENGTH * 2; check_i += 2)
 	{
-		sum[check_i] = line[i + check_i];
+		str[0] = line[i + check_i];
+		str[1] = line[i + check_i + 1];
+		sum[check_i / 2] = (unsigned char)strtol(str, NULL, 16);
 	}
 	return 0;
 }
