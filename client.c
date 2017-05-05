@@ -331,8 +331,6 @@ int main(int argc, char *argv[])
 					strcat(path, "/images/");
 					strcat(path, base);
 
-					printf("path %s\n", path);
-
 					f = fopen(path, "wb+");
 					keep_reading = 1;
 					int chunks = 0;
@@ -593,6 +591,13 @@ int main(int argc, char *argv[])
 			if(!result)
 			{
 				md5sum(image_path, calculated_sum);
+				int check_i = 0;
+				printf("----------------------------");
+				for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
+				{
+					printf("%02x", sum[i]);
+					printf("%02x\n", calculated_sum[i]);
+				}
 				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 				{
 					fprintf(html, "<pre>(Checksum match!)    <a href='%s'>%s</pre>\n",image_path, image_name);
