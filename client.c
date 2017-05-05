@@ -590,6 +590,13 @@ int main(int argc, char *argv[])
 			if(!result)
 			{
 				md5sum(image_path, calculated_sum);
+				int check_i = 0;
+				printf("----------------------------");
+				for(check_i = 0; check_i < MD5_DIGEST_LENGTH; check_i++)
+				{
+					printf("%02x", sum[i]);
+					printf("%02x\n", calculated_sum[i]);
+				}
 				if(memcmp(calculated_sum, sum, MD5_DIGEST_LENGTH) == 0)
 				{
 					fprintf(html, "<pre>(Checksum match!)    <a href='Image Link goes here'>%s</pre>\n", image_name);
